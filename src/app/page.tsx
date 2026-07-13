@@ -6,6 +6,9 @@ export default function Home() {
         Turn your written policies into scenario-based training with a
         tamper-evident completion ledger.
       </p>
+      <p>
+        <a href="/login">Sign in</a>
+      </p>
     </main>
   );
 }
