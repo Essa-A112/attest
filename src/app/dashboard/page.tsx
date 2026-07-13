@@ -4,6 +4,20 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { db } from "@/db";
 import { orgs } from "@/db/schema";
+import { verifyChain } from "@/ledger/verify";
+
+async function LedgerStatus({ orgId }: { orgId: string }) {
+  const result = await verifyChain(orgId);
+  return result.status === "intact" ? (
+    <p style={{ color: "#15803d" }}>
+      ✓ Chain intact — {result.rows} attempt{result.rows === 1 ? "" : "s"} recorded.
+    </p>
+  ) : (
+    <p style={{ color: "#b91c1c" }}>
+      ✗ Chain BROKEN at row {result.atSeq}: {result.reason}
+    </p>
+  );
+}
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -47,6 +61,10 @@ export default async function DashboardPage() {
           <Link href="/dashboard/policies">Manage policies</Link> &mdash; upload
           or paste a policy to start building training from it.
         </p>
+      </section>
+      <section style={{ marginTop: "2rem" }}>
+        <h2>Completion ledger</h2>
+        <LedgerStatus orgId={session.user.orgId} />
       </section>
     </main>
   );
