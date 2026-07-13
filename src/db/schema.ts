@@ -2,6 +2,8 @@
 // for the full data model this converges on.
 
 import {
+  bigserial,
+  boolean,
   integer,
   jsonb,
   pgTable,
@@ -178,6 +180,58 @@ export const generationRuns = pgTable("generation_runs", {
   modelVersion: text("model_version").notNull(),
   latencyMs: integer("latency_ms").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// The ONLY place trainee PII (name, email) lives. Everything else references
+// the pseudonym. A GDPR erasure deletes this row; assignments and the attempts
+// ledger keep working because they never point at this table's id or PII.
+export const trainees = pgTable(
+  "trainees",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id),
+    pseudonym: text("pseudonym").notNull().unique(),
+    name: text("name"),
+    email: text("email").notNull(),
+  },
+  (table) => [uniqueIndex("trainees_org_email_idx").on(table.orgId, table.email)],
+);
+
+export const assignments = pgTable("assignments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id")
+    .notNull()
+    .references(() => courses.id),
+  // Pseudonym, deliberately NOT a foreign key to trainees: erasure deletes the
+  // trainees row and assignments must survive it.
+  traineePseudonym: text("trainee_pseudonym").notNull(),
+  // Capability token for the trainee magic link (no trainee accounts).
+  token: text("token").notNull().unique(),
+  dueAt: timestamp("due_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// The append-only ledger. Rows are hash-chained per org from the first row on
+// (genesis prev_hash is a constant); issue 8 adds the trigger, grants, and
+// verifyChain. org_id and seq are denormalised so the chain can be walked
+// without joins and with a total order.
+export const attempts = pgTable("attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  seq: bigserial("seq", { mode: "number" }).notNull().unique(),
+  orgId: uuid("org_id").notNull(),
+  assignmentId: uuid("assignment_id").notNull(),
+  courseId: uuid("course_id").notNull(),
+  traineePseudonym: text("trainee_pseudonym").notNull(),
+  answers: jsonb("answers").$type<number[]>().notNull(),
+  score: integer("score").notNull(),
+  total: integer("total").notNull(),
+  passed: boolean("passed").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  prevHash: text("prev_hash").notNull(),
+  rowHash: text("row_hash").notNull(),
 });
 
 // Audit log. actor is a user id (never an email); subject is "<type>:<id>".

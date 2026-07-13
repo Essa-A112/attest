@@ -8,6 +8,9 @@ import { orgs, users } from "@/db/schema";
 export async function resetDb(): Promise<void> {
   await db.execute(sql`
     truncate table
+      attempts,
+      assignments,
+      trainees,
       events,
       generation_runs,
       questions,

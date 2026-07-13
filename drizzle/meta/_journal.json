@@ -43,6 +43,13 @@
       "when": 1783944589793,
       "tag": "0005_events",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783945122700,
+      "tag": "0006_trainees-assignments-attempts",
+      "breakpoints": true
     }
   ]
 }

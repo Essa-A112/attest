@@ -3,7 +3,21 @@ import { notFound } from "next/navigation";
 import { requireOrgSession } from "@/auth/session";
 import { getCourseForOrg, listObligations, listQuestions } from "@/courses/queries";
 import { canPublish, reviewSummary } from "@/courses/review";
-import { publishCourseAction } from "../actions";
+import { getAssignmentProgress } from "@/courses/assignments";
+
+async function AssignmentSummary({ courseId }: { courseId: string }) {
+  const progress = await getAssignmentProgress(courseId);
+  return (
+    <section>
+      <h2>Assignments</h2>
+      <p>
+        {progress.completed} of {progress.total} trainees completed
+        {progress.total > 0 ? ` (${Math.round((progress.completed / progress.total) * 100)}%)` : ""}
+        .
+      </p>
+    </section>
+  );
+}
 
 export default async function CoursePage({
   params,
@@ -58,6 +72,8 @@ export default async function CoursePage({
         </p>
       ) : null}
 
+      {course.status === "published" ? <AssignmentSummary courseId={course.id} /> : null}
+
       <h2>Questions ({questionRows.length})</h2>
       {questionRows.length > 0 ? (
         <>
@@ -73,35 +89,42 @@ export default async function CoursePage({
               </Link>
             </p>
           ) : null}
-          {session.role === "admin" ? (
-            <form action={publishCourseAction}>
-              <input type="hidden" name="courseId" value={course.id} />
-              <button
-                type="submit"
-                disabled={!publishable}
-                title={
-                  publishable
-                    ? "Publish this course"
-                    : pendingCount > 0
+          {session.role === "admin" && course.status === "draft" ? (
+            <p>
+              {publishable ? (
+                <Link
+                  href={`/dashboard/courses/${course.id}/publish`}
+                  style={{
+                    display: "inline-block",
+                    padding: "0.5rem 1rem",
+                    background: "var(--accent)",
+                    color: "white",
+                    borderRadius: "4px",
+                    textDecoration: "none",
+                  }}
+                >
+                  Publish course
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  title={
+                    pendingCount > 0
                       ? `${pendingCount} question(s) still pending review`
-                      : course.status !== "draft"
-                        ? "course is not a draft"
-                        : "at least one approved question is required"
-                }
-                style={{
-                  padding: "0.5rem 1rem",
-                  opacity: publishable ? 1 : 0.5,
-                  cursor: publishable ? "pointer" : "not-allowed",
-                }}
-              >
-                Publish course
-              </button>
+                      : "at least one approved question is required"
+                  }
+                  style={{ padding: "0.5rem 1rem", opacity: 0.5, cursor: "not-allowed" }}
+                >
+                  Publish course
+                </button>
+              )}
               {!publishable && pendingCount > 0 ? (
                 <span style={{ marginLeft: "0.75rem", color: "var(--muted)" }}>
                   Blocked: {pendingCount} question(s) awaiting review.
                 </span>
               ) : null}
-            </form>
+            </p>
           ) : null}
         </>
       ) : null}
