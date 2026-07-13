@@ -9,6 +9,7 @@ export async function resetDb(): Promise<void> {
   await db.execute(sql`
     truncate table
       generation_runs,
+      questions,
       obligations,
       courses,
       policies,

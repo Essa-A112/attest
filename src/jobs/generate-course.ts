@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, generationRuns, obligations, policies } from "@/db/schema";
-import { runPassA, PassFailedError, type PassARun } from "@/llm/passA";
+import { courses, generationRuns, obligations, policies, questions } from "@/db/schema";
+import { runPassA, PassFailedError, type PassARun, type VerifiedObligation } from "@/llm/passA";
+import { runPassB } from "@/llm/passB";
+import { runPassC } from "@/llm/passC";
 import { getProvider, type LlmProvider } from "@/llm/provider";
 
 async function logRuns(courseId: string, pass: "A" | "B" | "C", runs: PassARun[]) {
@@ -46,24 +48,68 @@ export async function runCourseGeneration(
 
   const provider = providerOverride ?? (await getProvider());
 
-  await setStatus(courseId, "extracting");
   try {
+    // Pass A: extraction with offset verification.
+    await setStatus(courseId, "extracting");
     const passA = await runPassA(provider, policy.text);
     await logRuns(courseId, "A", passA.runs);
 
+    const obligationIdByLabel = new Map<string, string>();
+    const obligationByLabel = new Map<string, VerifiedObligation>();
     for (const ob of passA.obligations) {
-      await db.insert(obligations).values({
+      const [row] = await db
+        .insert(obligations)
+        .values({
+          courseId,
+          label: ob.id,
+          statement: ob.statement,
+          quote: ob.quote,
+          offsets: ob.offsets,
+        })
+        .returning();
+      if (!row) throw new Error("obligation insert failed");
+      obligationIdByLabel.set(ob.id, row.id);
+      obligationByLabel.set(ob.id, ob);
+    }
+
+    // Pass B: question generation per batch of obligations.
+    await setStatus(courseId, "generating");
+    const passB = await runPassB(provider, passA.obligations);
+    await logRuns(courseId, "B", passB.runs);
+
+    // Pass C: programmatic flags already attached in B; add checker verdicts.
+    await setStatus(courseId, "checking");
+    const passC = await runPassC(provider, passB.questions, obligationByLabel);
+    await logRuns(courseId, "C", passC.runs);
+
+    for (const q of passC.questions) {
+      const obligationId = obligationIdByLabel.get(q.obligation_id);
+      const source = obligationByLabel.get(q.obligation_id);
+      if (!obligationId || !source) {
+        // unknown obligation_id was already flagged; without a referent we
+        // cannot store the row, so it is dropped and the flag recorded in runs
+        continue;
+      }
+      await db.insert(questions).values({
         courseId,
-        label: ob.id,
-        statement: ob.statement,
-        quote: ob.quote,
-        offsets: ob.offsets,
+        obligationId,
+        scenario: q.scenario,
+        options: q.options,
+        correct: q.correct,
+        rationale: q.rationale,
+        sourceQuote: source.quote,
+        sourceOffsets: source.offsets,
+        reviewStatus: "pending",
+        checkFlags: q.flags,
+        checkerNotes: q.checkerNotes,
       });
     }
+
     await setStatus(courseId, "ready");
   } catch (err) {
     if (err instanceof PassFailedError) {
-      await logRuns(courseId, "A", err.runs);
+      const passLetter = err.pass === "passA" ? "A" : err.pass === "passB" ? "B" : "C";
+      await logRuns(courseId, passLetter, err.runs);
       await setStatus(courseId, "failed", err.reason);
       return;
     }

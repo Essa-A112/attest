@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { courses, obligations, policies } from "@/db/schema";
+import { courses, obligations, policies, questions } from "@/db/schema";
 
 /**
  * Courses carry no org_id; tenancy flows through the policy they were built
@@ -39,4 +39,12 @@ export async function listObligations(courseId: string) {
     .from(obligations)
     .where(eq(obligations.courseId, courseId))
     .orderBy(obligations.createdAt);
+}
+
+export async function listQuestions(courseId: string) {
+  return db
+    .select()
+    .from(questions)
+    .where(eq(questions.courseId, courseId))
+    .orderBy(questions.createdAt);
 }

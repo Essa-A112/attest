@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrgSession } from "@/auth/session";
-import { getCourseForOrg, listObligations } from "@/courses/queries";
+import { getCourseForOrg, listObligations, listQuestions } from "@/courses/queries";
 
 export default async function CoursePage({
   params,
@@ -14,6 +14,9 @@ export default async function CoursePage({
   if (!row) notFound();
   const { course, policy } = row;
   const obligationRows = await listObligations(course.id);
+  const questionRows = await listQuestions(course.id);
+  const pendingCount = questionRows.filter((q) => q.reviewStatus === "pending").length;
+  const flaggedCount = questionRows.filter((q) => q.checkFlags.length > 0).length;
 
   const inProgress = ["pending", "extracting", "generating", "checking"].includes(
     course.generationStatus,
@@ -39,6 +42,19 @@ export default async function CoursePage({
       {inProgress ? (
         <p style={{ color: "var(--muted)" }}>
           Working&hellip; this page refreshes automatically.
+        </p>
+      ) : null}
+
+      <h2>Questions ({questionRows.length})</h2>
+      {questionRows.length > 0 ? (
+        <p>
+          {pendingCount} pending review
+          {flaggedCount > 0 ? <> &middot; {flaggedCount} flagged by checks</> : null}
+          <br />
+          <span style={{ color: "var(--muted)" }}>
+            The review gate arrives in the next slice; no question reaches a
+            trainee until an admin approves it.
+          </span>
         </p>
       ) : null}
 

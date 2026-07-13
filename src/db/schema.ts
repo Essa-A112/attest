@@ -140,6 +140,33 @@ export const obligations = pgTable("obligations", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const reviewStatuses = ["pending", "approved", "edited", "rejected"] as const;
+export type ReviewStatus = (typeof reviewStatuses)[number];
+
+export const questions = pgTable("questions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id")
+    .notNull()
+    .references(() => courses.id),
+  obligationId: uuid("obligation_id")
+    .notNull()
+    .references(() => obligations.id),
+  scenario: text("scenario").notNull(),
+  options: jsonb("options").$type<string[]>().notNull(),
+  correct: integer("correct").notNull(),
+  rationale: text("rationale").notNull(),
+  sourceQuote: text("source_quote").notNull(),
+  sourceOffsets: jsonb("source_offsets").$type<[number, number]>().notNull(),
+  reviewStatus: text("review_status", { enum: reviewStatuses })
+    .notNull()
+    .default("pending"),
+  // Pass C output: programmatic + checker-model flags. Flagged questions are
+  // never discarded; the admin review gate is the final validator.
+  checkFlags: jsonb("check_flags").$type<string[]>().notNull().default([]),
+  checkerNotes: text("checker_notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const generationRuns = pgTable("generation_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
   courseId: uuid("course_id")
