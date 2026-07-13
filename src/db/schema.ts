@@ -3,6 +3,7 @@
 
 import {
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -90,6 +91,67 @@ export const policies = pgTable(
     ),
   ],
 );
+
+export const courseStatuses = ["draft", "published", "retired"] as const;
+export type CourseStatus = (typeof courseStatuses)[number];
+
+export const generationStatuses = [
+  "pending",
+  "extracting",
+  "generating",
+  "checking",
+  "ready",
+  "failed",
+] as const;
+export type GenerationStatus = (typeof generationStatuses)[number];
+
+export const courses = pgTable("courses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  policyId: uuid("policy_id")
+    .notNull()
+    .references(() => policies.id),
+  // Mirrors the policy version the course was generated from.
+  version: integer("version").notNull(),
+  status: text("status", { enum: courseStatuses }).notNull().default("draft"),
+  passMark: integer("pass_mark").notNull().default(80),
+  createdBy: uuid("created_by")
+    .notNull()
+    .references(() => users.id),
+  generationStatus: text("generation_status", { enum: generationStatuses })
+    .notNull()
+    .default("pending"),
+  generationError: text("generation_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Verified output of pass A. Questions reference obligations; the trainee brief
+// lists them. Not in the original data-model sketch, but questions.obligation_id
+// needs a referent and the brief needs a source.
+export const obligations = pgTable("obligations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id")
+    .notNull()
+    .references(() => courses.id),
+  // Model-assigned id within the extraction ("OB-1"...), unique per course.
+  label: text("label").notNull(),
+  statement: text("statement").notNull(),
+  quote: text("quote").notNull(),
+  offsets: jsonb("offsets").$type<[number, number]>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const generationRuns = pgTable("generation_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  courseId: uuid("course_id")
+    .notNull()
+    .references(() => courses.id),
+  pass: text("pass", { enum: ["A", "B", "C"] }).notNull(),
+  input: jsonb("input").notNull(),
+  output: jsonb("output").notNull(),
+  modelVersion: text("model_version").notNull(),
+  latencyMs: integer("latency_ms").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const verificationTokens = pgTable(
   "verification_tokens",

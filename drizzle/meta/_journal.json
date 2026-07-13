@@ -22,6 +22,13 @@
       "when": 1783929890970,
       "tag": "0002_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783930397323,
+      "tag": "0003_courses-obligations-runs",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrgSession } from "@/auth/session";
+import { listCoursesForPolicy } from "@/courses/queries";
 import { getPolicy } from "@/ingest/policies";
+import { createCourseFromPolicy } from "../../courses/actions";
 
 export default async function PolicyPage({
   params,
@@ -12,6 +14,7 @@ export default async function PolicyPage({
   const { id } = await params;
   const policy = await getPolicy(session.orgId, id);
   if (!policy) notFound();
+  const courseRows = await listCoursesForPolicy(session.orgId, policy.id);
 
   return (
     <main className="container">
@@ -29,6 +32,30 @@ export default async function PolicyPage({
         <dt>Stored</dt>
         <dd>{policy.createdAt.toISOString()}</dd>
       </dl>
+      <h2>Courses</h2>
+      {courseRows.length === 0 ? (
+        <p style={{ color: "var(--muted)" }}>No courses generated yet.</p>
+      ) : (
+        <ul>
+          {courseRows.map(({ course }) => (
+            <li key={course.id}>
+              <Link href={`/dashboard/courses/${course.id}`}>
+                Course v{course.version}
+              </Link>{" "}
+              &mdash; {course.status} / generation {course.generationStatus}
+            </li>
+          ))}
+        </ul>
+      )}
+      {session.role === "admin" ? (
+        <form action={createCourseFromPolicy}>
+          <input type="hidden" name="policyId" value={policy.id} />
+          <button type="submit" style={{ padding: "0.5rem 1rem" }}>
+            Generate course from this policy
+          </button>
+        </form>
+      ) : null}
+
       <h2>Extracted text</h2>
       <pre
         style={{
