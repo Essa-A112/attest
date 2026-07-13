@@ -8,6 +8,7 @@ import { orgs, users } from "@/db/schema";
 export async function resetDb(): Promise<void> {
   await db.execute(sql`
     truncate table
+      policies,
       verification_tokens,
       sessions,
       accounts,

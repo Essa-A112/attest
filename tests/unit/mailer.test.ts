@@ -1,11 +1,14 @@
 import { readFileSync, rmSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { sendEmail } from "@/emails/mailer";
 
 const MAILBOX = path.join(process.cwd(), ".dev-mail");
 
 describe("mailer (dev mode, no RESEND_API_KEY)", () => {
+  beforeEach(() => {
+    rmSync(MAILBOX, { recursive: true, force: true });
+  });
   afterEach(() => {
     rmSync(MAILBOX, { recursive: true, force: true });
   });

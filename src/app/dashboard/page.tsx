@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { db } from "@/db";
@@ -42,8 +43,9 @@ export default async function DashboardPage() {
       </header>
       <section style={{ marginTop: "2rem" }}>
         <h2>Policies</h2>
-        <p style={{ color: "var(--muted)" }}>
-          Policy intake arrives in the next slice.
+        <p>
+          <Link href="/dashboard/policies">Manage policies</Link> &mdash; upload
+          or paste a policy to start building training from it.
         </p>
       </section>
     </main>

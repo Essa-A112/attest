@@ -42,3 +42,6 @@ next-env.d.ts
 
 # dev mailbox (magic links land here without a Resend key)
 .dev-mail/
+
+# local upload storage (dev/CI)
+.uploads/

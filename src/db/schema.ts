@@ -7,6 +7,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -63,6 +64,32 @@ export const sessions = pgTable("sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   expires: timestamp("expires", { withTimezone: true }).notNull(),
 });
+
+export const policies = pgTable(
+  "policies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id),
+    title: text("title").notNull(),
+    version: integer("version").notNull(),
+    // Canonical extracted text. sha256 is computed over exactly this string;
+    // it is what obligations quote against and what the evidence pack cites.
+    text: text("text").notNull(),
+    sourceFileKey: text("source_file_key"),
+    sourceKind: text("source_kind", { enum: ["pdf", "docx", "text"] }).notNull(),
+    sha256: text("sha256").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("policies_org_title_version_idx").on(
+      table.orgId,
+      table.title,
+      table.version,
+    ),
+  ],
+);
 
 export const verificationTokens = pgTable(
   "verification_tokens",

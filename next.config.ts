@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {
+      // Policy uploads (PDF/docx) go through a server action.
+      bodySizeLimit: "12mb",
+    },
+  },
 };
 
 export default nextConfig;
