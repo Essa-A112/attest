@@ -180,6 +180,18 @@ export const generationRuns = pgTable("generation_runs", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Audit log. actor is a user id (never an email); subject is "<type>:<id>".
+export const events = pgTable("events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id")
+    .notNull()
+    .references(() => orgs.id),
+  actor: text("actor").notNull(),
+  action: text("action").notNull(),
+  subject: text("subject").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const verificationTokens = pgTable(
   "verification_tokens",
   {
