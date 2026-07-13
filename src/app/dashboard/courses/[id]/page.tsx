@@ -72,7 +72,17 @@ export default async function CoursePage({
         </p>
       ) : null}
 
-      {course.status === "published" ? <AssignmentSummary courseId={course.id} /> : null}
+      {course.status === "published" ? (
+        <>
+          <AssignmentSummary courseId={course.id} />
+          <p>
+            Evidence pack:{" "}
+            <a href={`/dashboard/courses/${course.id}/evidence/pdf`}>PDF</a>{" "}
+            &middot;{" "}
+            <a href={`/dashboard/courses/${course.id}/evidence/csv`}>CSV</a>
+          </p>
+        </>
+      ) : null}
 
       <h2>Questions ({questionRows.length})</h2>
       {questionRows.length > 0 ? (
