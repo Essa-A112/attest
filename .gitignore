@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local upload storage (dev/CI)
 .uploads/
+
+# eval scratch output (baseline.json IS committed)
+eval/last-run.json

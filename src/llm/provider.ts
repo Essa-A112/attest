@@ -5,7 +5,7 @@
  *  - no tools are ever passed to generation calls
  *  - prompts/keys never reach the client; callers log via generation_runs, not console
  */
-export type PassKind = "passA" | "passB" | "passC";
+export type PassKind = "passA" | "passB" | "passC" | "judge";
 
 export interface CompletionRequest {
   kind: PassKind;

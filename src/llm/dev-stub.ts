@@ -26,6 +26,14 @@ export class DevStubProvider implements LlmProvider {
         return this.generateQuestions(req.user);
       case "passC":
         return this.checkQuestions(req.user);
+      case "judge":
+        return JSON.stringify({
+          accuracy: 4,
+          distractor_plausibility: 3,
+          scenario_realism: 3,
+          single_defensible_answer: 4,
+          notes: "dev-stub: fixed scores, not a real judgement",
+        });
     }
   }
 

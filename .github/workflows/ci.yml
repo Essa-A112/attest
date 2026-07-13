@@ -27,6 +27,8 @@ jobs:
       APP_DATABASE_URL: postgres://attest:attest@localhost:5432/attest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
@@ -49,3 +51,21 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      # Eval gate: any change under src/llm/ or eval/ must ship with an eval
+      # run. Without an API key the run uses the deterministic dev stub, which
+      # still exercises the full pipeline, schema checks, and the golden set.
+      - name: Eval gate (src/llm changes)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          BASE="${BASE_SHA:-$(git rev-parse HEAD~1 2>/dev/null || echo '')}"
+          if [ -z "$BASE" ]; then
+            echo "No base to diff against; running eval defensively."
+            pnpm eval
+          elif git diff --name-only "$BASE"...HEAD | grep -qE '^(src/llm/|eval/)'; then
+            echo "src/llm or eval changed since $BASE; eval run required."
+            pnpm eval
+          else
+            echo "No src/llm or eval changes; skipping eval run."
+          fi

@@ -1,0 +1,91 @@
+{
+  "provider": "dev-stub",
+  "ranAt": "2026-07-13T12:33:24.903Z",
+  "results": [
+    {
+      "slug": "data-handling",
+      "obligations": 8,
+      "droppedObligations": 0,
+      "questions": 8,
+      "flaggedPct": 0,
+      "avgScenarioWords": 16,
+      "avgReadingGrade": 7.1,
+      "distributionSkewed": false,
+      "rubric": {
+        "accuracy": 4,
+        "distractor_plausibility": 3,
+        "scenario_realism": 3,
+        "single_defensible_answer": 4,
+        "notes": "dev-stub: fixed scores, not a real judgement"
+      }
+    },
+    {
+      "slug": "expenses",
+      "obligations": 8,
+      "droppedObligations": 0,
+      "questions": 8,
+      "flaggedPct": 0,
+      "avgScenarioWords": 16,
+      "avgReadingGrade": 7.1,
+      "distributionSkewed": false,
+      "rubric": {
+        "accuracy": 4,
+        "distractor_plausibility": 3,
+        "scenario_realism": 3,
+        "single_defensible_answer": 4,
+        "notes": "dev-stub: fixed scores, not a real judgement"
+      }
+    },
+    {
+      "slug": "it-security",
+      "obligations": 8,
+      "droppedObligations": 0,
+      "questions": 8,
+      "flaggedPct": 0,
+      "avgScenarioWords": 16,
+      "avgReadingGrade": 7.1,
+      "distributionSkewed": false,
+      "rubric": {
+        "accuracy": 4,
+        "distractor_plausibility": 3,
+        "scenario_realism": 3,
+        "single_defensible_answer": 4,
+        "notes": "dev-stub: fixed scores, not a real judgement"
+      }
+    },
+    {
+      "slug": "remote-work",
+      "obligations": 7,
+      "droppedObligations": 0,
+      "questions": 7,
+      "flaggedPct": 0,
+      "avgScenarioWords": 16,
+      "avgReadingGrade": 7.1,
+      "distributionSkewed": false,
+      "rubric": {
+        "accuracy": 4,
+        "distractor_plausibility": 3,
+        "scenario_realism": 3,
+        "single_defensible_answer": 4,
+        "notes": "dev-stub: fixed scores, not a real judgement"
+      }
+    },
+    {
+      "slug": "safeguarding",
+      "obligations": 8,
+      "droppedObligations": 0,
+      "questions": 8,
+      "flaggedPct": 0,
+      "avgScenarioWords": 16,
+      "avgReadingGrade": 7.1,
+      "distributionSkewed": false,
+      "rubric": {
+        "accuracy": 4,
+        "distractor_plausibility": 3,
+        "scenario_realism": 3,
+        "single_defensible_answer": 4,
+        "notes": "dev-stub: fixed scores, not a real judgement"
+      }
+    }
+  ]
+}

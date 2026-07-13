@@ -14,8 +14,16 @@ cp .env.example .env
 docker compose up -d          # Postgres 16 on localhost:5432
 pnpm install
 pnpm db:migrate
-pnpm dev
+pnpm seed                     # demo org + admin@demo.attest.local
+pnpm dev                      # app on localhost:3000
+pnpm worker                   # in a second terminal: runs generation jobs
 ```
+
+Without `RESEND_API_KEY`, magic-link emails are written to `.dev-mail/` as
+JSON files — open the latest file and follow the link. Without
+`ANTHROPIC_API_KEY`, generation uses a deterministic dev stub so the whole
+flow (generate → review → publish → trainee → evidence pack) works offline;
+production requires the real key and refuses to fall back.
 
 ## Commands
 
